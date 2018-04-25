@@ -48,6 +48,7 @@ class Tab implements Aggregate {
                     c.getId(),
                     drinks);
             domainEventPublisher.publish(drinksOrdered);
+            // TODO apply
         }
 
         List<OrderItem> food = c.getItems().stream()
@@ -58,19 +59,26 @@ class Tab implements Aggregate {
                     c.getId(),
                     food);
             domainEventPublisher.publish(foodOrdered);
+            // TODO apply
         }
     }
 
     void handle(MarkDrinksServed c) {
-        List<Integer> outstandingDrinkNumbers = this.outstandingDrinks.stream().map(OrderItem::menuNumber).collect(Collectors.toList());
-
-        if (!outstandingDrinkNumbers.containsAll(c.getMenuNumbers())) {
+        if (!areDrinksOutstanding(c.getMenuNumbers())) {
             throw new DrinksNotOutstanding();
         }
 
         DrinksServed drinksServed = new DrinksServed(c.getTabId(), c.getMenuNumbers());
 
         domainEventPublisher.publish(drinksServed);
+        // TODO apply
+    }
+
+    private boolean areDrinksOutstanding(List<Integer> menuNumbers) {
+        List<Integer> outstandingDrinkNumbers = this.outstandingDrinks.stream()
+                .map(OrderItem::menuNumber)
+                .collect(Collectors.toList());
+        return outstandingDrinkNumbers.containsAll(menuNumbers);
     }
 
     void handle(CloseTab c) {
@@ -78,6 +86,7 @@ class Tab implements Aggregate {
         TabClosed tabClosed = new TabClosed(c.getTabId(), c.getAmountPaid(), servedItemsValue, tipValue);
 
         domainEventPublisher.publish(tabClosed);
+        // TODO apply
     }
 
     //
